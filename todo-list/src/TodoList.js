@@ -1,10 +1,13 @@
 import { LitElement, html, css } from 'lit';
+import { Footer } from './footer';
+import { HideCompletedCheckbox } from './hideCompleted';
 
 
 export class TodoList extends LitElement {
   static get properties() {
     return {
       tasks: { type: Array },
+      hideCompleted: {}
     };
   }
 
@@ -44,16 +47,12 @@ export class TodoList extends LitElement {
         text-decoration-line: line-through;
         color: #777;
       }
-
-      .app-footer {
-        font-size: 25px;
-        align-items: center;
-        margin: 30px;
+      
+      #newtask {
+        margin-bottom: 35px;
       }
 
-      #contacts a {
-        margin-left: 35px;
-      }
+      
     `;
   }
 
@@ -63,10 +62,33 @@ export class TodoList extends LitElement {
       {text: "create a component", completed: true},
       {text: "render it", completed: false}
     ];
+    this.hideCompleted = false;
+  }
+
+  render() {
+
+    const listItems = this.hideCompleted ? this.tasks.filter((item)=> !item.completed) : this.tasks;
+    const list = html`<ul>
+          ${listItems.map((task)=> html`<li class=${task.completed ? "completed" : ""} @click=${()=>this.completeTask(task)}>${task.text}</li>`)}
+        </ul>`;
+
+    return html`
+      <main>
+        <h1>Things to do: </h1>
+        ${listItems.length > 0 ? list : html`<p>All tasks completed!!</p>`}
+        <input type="text" placeHolder="New task" id="newtask"/>
+        <button @click=${this.addTask}>Add</button>
+        <br/>
+        <label id="hideButton">
+          <input type="checkbox" @change=${this.hideButton} ?checked=${this.hideCompleted}> Hide completed tasks
+        </label>
+      </main>
+      <footer-template></footer-template>
+    `;
   }
 
   get input(){
-    return this.renderRoot?.querySelector("#newtask") ?? null;
+    return this.renderRoot.querySelector("#newtask");
   }
   addTask(){
     if(this.input.value !== ""){
@@ -78,30 +100,7 @@ export class TodoList extends LitElement {
     task.completed= !task.completed;
     this.requestUpdate();
   }
-
-  render() {
-    return html`
-      <main>
-        <h1>Things to do: </h1>
-        <ul>
-          ${this.tasks.map((task)=> html`<li class=${task.completed ? "completed" : ""} @click=${()=>this.completeTask(task)}>${task.text}</li>`)}
-        </ul>
-        <input type="text" placeHolder="New task" id="newtask"/>
-        <button @click=${this.addTask}>Add</button>
-      </main>
-      <footer class="app-footer">
-        <hr/>
-        <p>Code by Arturo Vidal</p> 
-        <p>Contact:</p>
-        <div id="contacts">
-          <a className="contact-link" target="_blank" href="https://codepen.io/arturo_vidal"><i class="fa-brands fa-codepen"></i> Code Pen</a>
-
-          <a className="contact-link" target="_blank" href="https://www.linkedin.com/in/garturovidal/"><i class="fa-brands fa-linkedin"></i> Linkedin</a>
-
-          <a className="contact-link" target="_blank" href="https://github.com/arturo-vidal"><i class="fa-brands fa-github"></i> Github</a>
-
-        </div>
-      </footer>
-    `;
+  hideButton(event){
+    this.hideCompleted = event.target.checked;
   }
 }
